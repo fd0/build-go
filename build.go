@@ -18,6 +18,7 @@ var (
 	verbose    bool
 	keepGopath bool
 	runTests   bool
+	enableCGO  bool
 )
 
 var config = struct {
@@ -49,7 +50,7 @@ func specialDir(name string) bool {
 // excludePath returns true if the file should not be copied to the new GOPATH.
 func excludePath(name string) bool {
 	ext := path.Ext(name)
-	if ext == ".go" || ext == ".s" {
+	if ext == ".go" || ext == ".s" || ext == ".h" {
 		return false
 	}
 
@@ -76,13 +77,22 @@ func excludePath(name string) bool {
 //               └── restic
 //                   └── foo.go
 func updateGopath(dst, src, prefix string) error {
+	verbosePrintf("copy contents of %v to %v\n", src, filepath.Join(dst, prefix))
 	return filepath.Walk(src, func(name string, fi os.FileInfo, err error) error {
+		if name == src {
+			return err
+		}
+
 		if specialDir(name) {
 			if fi.IsDir() {
 				return filepath.SkipDir
 			}
 
 			return nil
+		}
+
+		if err != nil {
+			return err
 		}
 
 		if fi.IsDir() {
@@ -174,6 +184,8 @@ func showUsage(output io.Writer) {
 	fmt.Fprintf(output, "  -t     --tags          specify additional build tags\n")
 	fmt.Fprintf(output, "  -k     --keep-gopath   do not remove the GOPATH after build\n")
 	fmt.Fprintf(output, "  -T     --test          run tests\n")
+	fmt.Fprintf(output, "  -o     --output        set output file name\n")
+	fmt.Fprintf(output, "         --enable-cgo    use CGO to link against libc\n")
 	fmt.Fprintf(output, "         --goos value    set GOOS for cross-compilation\n")
 	fmt.Fprintf(output, "         --goarch value  set GOARCH for cross-compilation\n")
 }
@@ -202,9 +214,16 @@ func cleanEnv() (env []string) {
 
 // build runs "go build args..." with GOPATH set to gopath.
 func build(cwd, goos, goarch, gopath string, args ...string) error {
-	args = append([]string{"build"}, args...)
-	cmd := exec.Command("go", args...)
+	a := []string{"build"}
+	a = append(a, "-asmflags", fmt.Sprintf("-trimpath=%s", gopath))
+	a = append(a, "-gcflags", fmt.Sprintf("-trimpath=%s", gopath))
+	a = append(a, args...)
+	cmd := exec.Command("go", a...)
 	cmd.Env = append(cleanEnv(), "GOPATH="+gopath, "GOARCH="+goarch, "GOOS="+goos)
+	if !enableCGO {
+		cmd.Env = append(cmd.Env, "CGO_ENABLED=0")
+	}
+
 	cmd.Dir = cwd
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -298,6 +317,8 @@ func main() {
 	targetGOOS := runtime.GOOS
 	targetGOARCH := runtime.GOARCH
 
+	var outputFilename string
+
 	for i, arg := range params {
 		if skipNext {
 			skipNext = false
@@ -315,8 +336,13 @@ func main() {
 			}
 			skipNext = true
 			buildTags = strings.Split(params[i+1], " ")
+		case "-o", "--output":
+			skipNext = true
+			outputFilename = params[i+1]
 		case "-T", "--test":
 			runTests = true
+		case "--enable-cgo":
+			enableCGO = true
 		case "--goos":
 			skipNext = true
 			targetGOOS = params[i+1]
@@ -355,13 +381,13 @@ func main() {
 	}
 
 	verbosePrintf("create GOPATH at %v\n", gopath)
-	if err = updateGopath(gopath, filepath.Join(root, "src"), config.Namespace); err != nil {
+	if err = updateGopath(gopath, root, config.Namespace); err != nil {
 		die("copying files from %v/src to %v/src failed: %v\n", root, gopath, err)
 	}
 
-	vendor := filepath.Join(root, "vendor", "src")
+	vendor := filepath.Join(root, "vendor")
 	if directoryExists(vendor) {
-		if err = updateGopath(gopath, vendor, ""); err != nil {
+		if err = updateGopath(gopath, vendor, filepath.Join(config.Namespace, "vendor")); err != nil {
 			die("copying files from %v to %v failed: %v\n", root, gopath, err)
 		}
 	}
@@ -377,16 +403,21 @@ func main() {
 		}
 	}()
 
-	outputFilename := config.Name
-	if targetGOOS == "windows" {
-		outputFilename += ".exe"
+	if outputFilename == "" {
+		outputFilename = config.Name
+		if targetGOOS == "windows" {
+			outputFilename += ".exe"
+		}
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
 		die("Getwd() returned %v\n", err)
 	}
-	output := filepath.Join(cwd, outputFilename)
+	output := outputFilename
+	if !filepath.IsAbs(output) {
+		output = filepath.Join(cwd, output)
+	}
 
 	version := getVersion()
 	constants := Constants{}
