@@ -41,28 +41,30 @@ import (
 	"strings"
 )
 
+// config contains the configuration for the program to build.
+var config = Config{
+	Name:       "restic",                                 // name of the program executable
+	Namespace:  "github.com/restic/restic",               // subdir of GOPATH this repo/checkout needs to be at, e.g. "github.com/foo/bar"
+	Main:       "github.com/restic/restic/cmd/restic",    // package path for the main package to build
+	Tests:      []string{"github.com/restic/restic/..."}, // tests to run
+	MinVersion: GoVersion{1, 8, 0},                       // minimum Go version needed for this program
+}
+
+// Config configures the build.
+type Config struct {
+	Name       string
+	Namespace  string
+	Main       string
+	Tests      []string
+	MinVersion GoVersion
+}
+
 var (
 	verbose    bool
 	keepGopath bool
 	runTests   bool
 	enableCGO  bool
 )
-
-var config = struct {
-	Name       string
-	Namespace  string
-	Main       string
-	Tests      []string
-	MinVersion GoVersion
-}{
-	Name:      "restic",                              // name of the program executable and directory
-	Namespace: "github.com/restic/restic",            // subdir of GOPATH, e.g. "github.com/foo/bar"
-	Main:      "github.com/restic/restic/cmd/restic", // package name for the main package
-	Tests: []string{ // tests to run
-		"github.com/restic/restic/internal/...",
-		"github.com/restic/restic/cmd/..."},
-	MinVersion: GoVersion{Major: 1, Minor: 8, Patch: 3}, // minimum Go version supported
-}
 
 // specialDir returns true if the file begins with a special character ('.' or '_').
 func specialDir(name string) bool {
