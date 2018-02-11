@@ -1,6 +1,7 @@
 This repository contains a small and self-contained Go program called
 `build.go`. It used to compile a binary (package `main`) from either a checkout
-of the repository, or from an extracted release tar file.
+of the repository, or from an extracted release tar file. This enables
+end-users to compile the program without having to setup a `GOPATH`.
 
 The program has a build tag that is not set normally (`ignore_build_go`) so it
 is not considered when compiling the other Go code in a repository.
@@ -10,16 +11,16 @@ Usage
 
 In order to use it, copy `build.go` at the root level into your repository and
 edit the configuration section at the top. You can see an example in the
-[restic repository](https://github.com/restic/restic).
-
-Instruct your users to call `go run build.go` and it will produce a binary.
+[restic repository](https://github.com/restic/restic). Instruct your users to
+call `go run build.go` and it will produce a binary from either a checkout of
+the repository or from an extracted release tar file.
 
 For cross-compilation, the options `--goos` and `--goarch` can be used, e.g.
 like this: `go run build.go --goos windows --goarch 386`
 
 The program will set the string variable `version` in package `main` to a
 version string consisting of the contents of the file `VERSION` (if present)
-and the output of `git describe` (if availabel).
+and the output of `git describe` (if available).
 
 The version string can then be used e.g. in a `version` command, like with
 restic:
