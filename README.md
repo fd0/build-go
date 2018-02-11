@@ -16,7 +16,12 @@ call `go run build.go` and it will produce a binary from either a checkout of
 the repository or from an extracted release tar file.
 
 For cross-compilation, the options `--goos` and `--goarch` can be used, e.g.
-like this: `go run build.go --goos windows --goarch 386`
+like this:
+```
+$ go run build.go --goos windows --goarch 386
+```
+
+The tests can be run by specifying `--tests`.
 
 The program will set the string variable `version` in package `main` to a
 version string consisting of the contents of the file `VERSION` (if present)
@@ -32,6 +37,14 @@ restic 0.8.1 (v0.8.1-154-g74665a22)
 The version string consists of:
  * The contents of the `VERSION` file: `0.8.1`
  * The nearest tag (`v0.8.1`), the number of commits (`154`) and the Git commit hash (`74665a22`)
+
+Background
+==========
+
+The program `build.go` constructs a temporary `GOPATH` in a temporary directory
+as configured at the beginning of the program, then calls `go build` using the
+temporary `GOPATH`. This means that end-users do not have to setup a `GOPATH`
+of their own.
 
 Testing
 =======
