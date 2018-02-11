@@ -9,11 +9,11 @@ is not considered when compiling the other Go code in a repository.
 Usage
 =====
 
-In order to use it, copy `build.go` at the root level into your repository and
+In order to use it, copy `build.go` to the root level into your repository and
 edit the configuration section at the top. You can see an example in the
-[restic repository](https://github.com/restic/restic). Instruct your users to
-call `go run build.go` and it will produce a binary from either a checkout of
-the repository or from an extracted release tar file.
+[restic repository](https://github.com/restic/restic/blob/master/build.go).
+Instruct your users to call `go run build.go` and it will produce a binary from
+either a checkout of the repository or from an extracted release tar file.
 
 For cross-compilation, the options `--goos` and `--goarch` can be used, e.g.
 like this:
@@ -21,7 +21,9 @@ like this:
 $ go run build.go --goos windows --goarch 386
 ```
 
-The tests can be run by specifying `--tests`.
+The tests can be run by specifying `--tests`. By default, `cgo` is explicitly
+disabled by passing `CGO_ENABLED=0` to `go build`, it can be re-enabled
+manually by running `go run build.go --enable-cgo`.
 
 The program will set the string variable `version` in package `main` to a
 version string consisting of the contents of the file `VERSION` (if present)
