@@ -21,7 +21,7 @@ like this:
 $ go run build.go --goos windows --goarch 386
 ```
 
-The tests can be run by specifying `--tests`. By default, `cgo` is explicitly
+The tests can be run by specifying `--test`. By default, `cgo` is explicitly
 disabled by passing `CGO_ENABLED=0` to `go build`, it can be re-enabled
 manually by running `go run build.go --enable-cgo`.
 
