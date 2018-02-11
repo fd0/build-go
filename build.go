@@ -1,4 +1,4 @@
-// +build ignore
+// +build ignore_build_go
 
 package main
 
