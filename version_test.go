@@ -20,6 +20,25 @@ func TestParseGoVersion(t *testing.T) {
 		},
 		{
 			s: "go1.2",
+			v: GoVersion{Major: 1, Minor: 2, Patch: 0},
+		},
+		{
+			s: "go1.10",
+			v: GoVersion{Major: 1, Minor: 10, Patch: 0},
+		},
+		{
+			s: "go1.10.5",
+			v: GoVersion{Major: 1, Minor: 10, Patch: 5},
+		},
+		{
+			s: "go1.10rc2",
+			v: GoVersion{Major: 1, Minor: 10, Patch: 0},
+		},
+		{
+			s: "go1.xxxrc2",
+		},
+		{
+			s: "go1.foo.bar",
 		},
 	}
 

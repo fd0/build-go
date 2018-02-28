@@ -363,30 +363,39 @@ func ParseGoVersion(s string) (v GoVersion) {
 
 	s = s[2:]
 	data := strings.Split(s, ".")
-	if len(data) != 3 {
-		return
+	if len(data) < 2 || len(data) > 3 {
+		// invalid version
+		return GoVersion{}
 	}
 
-	major, err := strconv.Atoi(data[0])
+	var err error
+
+	v.Major, err = strconv.Atoi(data[0])
 	if err != nil {
-		return
+		return GoVersion{}
 	}
 
-	minor, err := strconv.Atoi(data[1])
-	if err != nil {
-		return
+	// try to parse the minor version while removing an eventual suffix (like
+	// "rc2" or so)
+	for s := data[1]; s != ""; s = s[:len(s)-1] {
+		v.Minor, err = strconv.Atoi(s)
+		if err == nil {
+			break
+		}
 	}
 
-	patch, err := strconv.Atoi(data[2])
-	if err != nil {
-		return
+	if v.Minor == 0 {
+		// no minor version found
+		return GoVersion{}
 	}
 
-	v = GoVersion{
-		Major: major,
-		Minor: minor,
-		Patch: patch,
+	if len(data) >= 3 {
+		v.Patch, err = strconv.Atoi(data[2])
+		if err != nil {
+			return GoVersion{}
+		}
 	}
+
 	return
 }
 
@@ -478,6 +487,8 @@ func main() {
 			os.Exit(1)
 		}
 	}
+
+	verbosePrintf("detected Go version %v\n", ver)
 
 	if len(buildTags) == 0 {
 		verbosePrintf("adding build-tag release\n")
