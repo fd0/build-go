@@ -250,10 +250,19 @@ func cleanEnv() (env []string) {
 }
 
 // build runs "go build args..." with GOPATH set to gopath.
-func build(cwd, goos, goarch, goarm, gopath string, args ...string) error {
+func build(cwd string, ver GoVersion, goos, goarch, goarm, gopath string, args ...string) error {
 	a := []string{"build"}
-	a = append(a, "-asmflags", fmt.Sprintf("-trimpath=%s", gopath))
-	a = append(a, "-gcflags", fmt.Sprintf("-trimpath=%s", gopath))
+
+	if ver.AtLeast(GoVersion{1, 10, 0}) {
+		verbosePrintf("Go version is at least 1.10, using new syntax for -gcflags\n")
+		// use new prefix
+		a = append(a, "-asmflags", fmt.Sprintf("all=-trimpath=%s", gopath))
+		a = append(a, "-gcflags", fmt.Sprintf("all=-trimpath=%s", gopath))
+	} else {
+		a = append(a, "-asmflags", fmt.Sprintf("-trimpath=%s", gopath))
+		a = append(a, "-gcflags", fmt.Sprintf("-trimpath=%s", gopath))
+	}
+
 	a = append(a, args...)
 	cmd := exec.Command("go", a...)
 	cmd.Env = append(cleanEnv(), "GOPATH="+gopath, "GOARCH="+goarch, "GOOS="+goos)
@@ -571,7 +580,7 @@ func main() {
 		"-o", output, config.Main,
 	}
 
-	err = build(filepath.Join(gopath, "src"), targetGOOS, targetGOARCH, targetGOARM, gopath, args...)
+	err = build(filepath.Join(gopath, "src"), ver, targetGOOS, targetGOARCH, targetGOARM, gopath, args...)
 	if err != nil {
 		die("build failed: %v\n", err)
 	}
