@@ -267,7 +267,7 @@ func build(cwd, goos, goarch, goarm, gopath string, args ...string) error {
 	cmd.Dir = cwd
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	verbosePrintf("go %s\n", args)
+	verbosePrintf("go %s\n", a)
 
 	return cmd.Run()
 }
