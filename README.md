@@ -3,6 +3,10 @@ This repository contains a small and self-contained Go program called
 of the repository, or from an extracted release tar file. This enables
 end-users to compile the program without having to setup a `GOPATH`.
 
+For it to function correctly, all dependencies need to be vendored, e.g. with
+`dep`. Then, your build does not depend on any third-party resources on the
+Internet.
+
 The program has a build tag that is not set normally (`ignore_build_go`) so it
 is not considered when compiling the other Go code in a repository.
 
@@ -12,6 +16,7 @@ Usage
 In order to use it, copy `build.go` to the root level into your repository and
 edit the configuration section at the top. You can see an example in the
 [restic repository](https://github.com/restic/restic/blob/master/build.go).
+
 Instruct your users to call `go run build.go` and it will produce a binary from
 either a checkout of the repository or from an extracted release tar file.
 
