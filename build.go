@@ -67,6 +67,7 @@ var (
 	keepGopath bool
 	runTests   bool
 	enableCGO  bool
+	enablePIE  bool
 )
 
 // specialDir returns true if the file begins with a special character ('.' or '_').
@@ -222,6 +223,7 @@ func showUsage(output io.Writer) {
 	fmt.Fprintf(output, "  -T     --test          run tests\n")
 	fmt.Fprintf(output, "  -o     --output        set output file name\n")
 	fmt.Fprintf(output, "         --enable-cgo    use CGO to link against libc\n")
+	fmt.Fprintf(output, "         --enable-pie    use PIE buildmode\n")
 	fmt.Fprintf(output, "         --goos value    set GOOS for cross-compilation\n")
 	fmt.Fprintf(output, "         --goarch value  set GOARCH for cross-compilation\n")
 	fmt.Fprintf(output, "         --goarm value   set GOARM for cross-compilation\n")
@@ -261,6 +263,9 @@ func build(cwd string, ver GoVersion, goos, goarch, goarm, gopath string, args .
 	} else {
 		a = append(a, "-asmflags", fmt.Sprintf("-trimpath=%s", gopath))
 		a = append(a, "-gcflags", fmt.Sprintf("-trimpath=%s", gopath))
+	}
+	if enablePIE {
+		a = append(a, "-buildmode=pie")
 	}
 
 	a = append(a, args...)
@@ -483,6 +488,8 @@ func main() {
 			runTests = true
 		case "--enable-cgo":
 			enableCGO = true
+		case "--enable-pie":
+			enablePIE = true
 		case "--goos":
 			skipNext = true
 			targetGOOS = params[i+1]
