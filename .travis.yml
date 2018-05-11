@@ -19,7 +19,7 @@ install:
   - go get honnef.co/go/tools/...
 
 script:
-  - go test -v
+  - go test -v -tags ignore_build_go
   - diff <(goimports -d *.go) <(printf "")
   - diff <(unused .) <(printf "")
   - diff <(gosimple .) <(printf "")
