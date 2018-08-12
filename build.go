@@ -46,20 +46,22 @@ import (
 
 // config contains the configuration for the program to build.
 var config = Config{
-	Name:       "restic",                                 // name of the program executable
-	Namespace:  "github.com/restic/restic",               // subdir of GOPATH this repo/checkout needs to be at, e.g. "github.com/foo/bar"
-	Main:       "github.com/restic/restic/cmd/restic",    // package path for the main package to build
-	Tests:      []string{"github.com/restic/restic/..."}, // tests to run
-	MinVersion: GoVersion{1, 8, 0},                       // minimum Go version needed for this program
+	Name:             "restic",                                 // name of the program executable
+	Namespace:        "github.com/restic/restic",               // subdir of GOPATH this repo/checkout needs to be at, e.g. "github.com/foo/bar"
+	Main:             "github.com/restic/restic/cmd/restic",    // package path for the main package to build
+	Tests:            []string{"github.com/restic/restic/..."}, // tests to run
+	DefaultBuildTags: []string{"selfupdate"},                   // specify build tags which are always used
+	MinVersion:       GoVersion{1, 8, 0},                       // minimum Go version needed for this program
 }
 
 // Config configures the build.
 type Config struct {
-	Name       string
-	Namespace  string
-	Main       string
-	Tests      []string
-	MinVersion GoVersion
+	Name             string
+	Namespace        string
+	Main             string
+	DefaultBuildTags []string
+	Tests            []string
+	MinVersion       GoVersion
 }
 
 var (
@@ -458,7 +460,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	buildTags := []string{}
+	buildTags := config.DefaultBuildTags
 
 	skipNext := false
 	params := os.Args[1:]
@@ -487,7 +489,7 @@ func main() {
 				die("-t given but no tag specified")
 			}
 			skipNext = true
-			buildTags = strings.Split(params[i+1], " ")
+			buildTags = append(buildTags, strings.Split(params[i+1], " ")...)
 		case "-o", "--output":
 			skipNext = true
 			outputFilename = params[i+1]
