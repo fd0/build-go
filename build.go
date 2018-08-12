@@ -238,11 +238,20 @@ func verbosePrintf(message string, args ...interface{}) {
 	fmt.Printf("build: "+message, args...)
 }
 
-// cleanEnv returns a clean environment with GOPATH and GOBIN removed (if
-// present).
+// cleanEnv returns a clean environment with GOPATH, GOBIN and GO111MODULE
+// removed (if present).
 func cleanEnv() (env []string) {
+	removeKeys := map[string]struct{}{
+		"GOPATH":      struct{}{},
+		"GOBIN":       struct{}{},
+		"GO111MODULE": struct{}{},
+	}
+
 	for _, v := range os.Environ() {
-		if strings.HasPrefix(v, "GOPATH=") || strings.HasPrefix(v, "GOBIN=") {
+		data := strings.SplitN(v, "=", 2)
+		name := data[0]
+
+		if _, ok := removeKeys[name]; ok {
 			continue
 		}
 
