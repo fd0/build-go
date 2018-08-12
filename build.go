@@ -605,7 +605,7 @@ func main() {
 	if runTests {
 		verbosePrintf("running tests\n")
 
-		err = test(cwd, gopath, config.Tests...)
+		err = test(filepath.Join(gopath, "src"), gopath, config.Tests...)
 		if err != nil {
 			die("running tests failed: %v\n", err)
 		}
