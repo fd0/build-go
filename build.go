@@ -551,7 +551,7 @@ func main() {
 		if !keepGopath {
 			verbosePrintf("remove %v\n", gopath)
 			if err = os.RemoveAll(gopath); err != nil {
-				die("remove GOPATH at %s failed: %v\n", err)
+				die("remove GOPATH at %s failed: %v\n", gopath, err)
 			}
 		} else {
 			verbosePrintf("leaving temporary GOPATH at %v\n", gopath)
