@@ -4,8 +4,9 @@ of the repository, or from an extracted release tar file. This enables
 end-users to compile the program without having to setup a `GOPATH`.
 
 For it to function correctly, all dependencies need to be vendored, e.g. with
-`dep`. Then, your build does not depend on any third-party resources on the
-Internet.
+`dep` or `go mod vendor`. Then, your build does not depend on any third-party
+resources on the Internet. For Go >= 1.11, modules are used for building and
+`GOPROXY` is set to `off` so that no Internet is needed when building.
 
 The program has a build tag that is not set normally (`ignore_build_go`) so it
 is not considered when compiling the other Go code in a repository.
@@ -48,10 +49,10 @@ The version string consists of:
 Background
 ==========
 
-The program `build.go` constructs a temporary `GOPATH` in a temporary directory
-as configured at the beginning of the program, then calls `go build` using the
-temporary `GOPATH`. This means that end-users do not have to setup a `GOPATH`
-of their own.
+The program `build.go` constructs a temporary `GOPATH` (for Go < 1.11, or when
+no `go.mod` exists) in a temporary directory as configured at the beginning of
+the program, then calls `go build` using the temporary `GOPATH`. This means
+that end-users do not have to setup a `GOPATH` of their own.
 
 Testing
 =======
