@@ -19,7 +19,9 @@ edit the configuration section at the top. You can see an example in the
 [restic repository](https://github.com/restic/restic/blob/master/build.go).
 
 Instruct your users to call `go run build.go` and it will produce a binary from
-either a checkout of the repository or from an extracted release tar file.
+either a checkout of the repository or from an extracted release tar file. For
+Go 1.11, it needs to be called as `go run -mod=vendor build.go` so that no
+network access is needed.
 
 For cross-compilation, the options `--goos` and `--goarch` can be used, e.g.
 like this:
