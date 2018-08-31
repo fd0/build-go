@@ -541,13 +541,6 @@ func main() {
 		die("Getwd(): %v\n", err)
 	}
 
-	if tempdir == "" {
-		tempdir, err = ioutil.TempDir("", fmt.Sprintf("%v-build-", config.Name))
-		if err != nil {
-			die("TempDir(): %v\n", err)
-		}
-	}
-
 	if outputFilename == "" {
 		outputFilename = config.Name
 		if buildEnv["GOOS"] == "windows" {
@@ -568,9 +561,6 @@ func main() {
 	ldflags := "-s -w " + constants.LDFlags()
 	verbosePrintf("ldflags: %s\n", ldflags)
 
-	buildTarget := "."
-	buildCWD := ""
-
 	var (
 		buildArgs []string
 		testArgs  []string
@@ -581,24 +571,23 @@ func main() {
 		mainPackage = strings.Replace(mainPackage, config.Namespace, "./", 1)
 	}
 
+	buildTarget := filepath.FromSlash(mainPackage)
+	buildCWD := ""
+
 	if goVersion.AtLeast(GoVersion{1, 11, 0}) && fileExists("go.mod") {
 		verbosePrintf("Go >= 1.11 and 'go.mod' found, building with modules\n")
-		targetdir := filepath.Join(tempdir, "target")
-		if err = copy(targetdir, root); err != nil {
-			die("copying files from %v/src to %v/src failed: %v\n", root, tempdir, err)
-		}
-
-		buildCWD = targetdir
-		buildTarget = filepath.FromSlash(mainPackage)
-
-		// set GOPATH so that Go can use it for the package cache
-		gopath := filepath.Join(tempdir, "gopath")
-		goEnv["GOPATH"] = gopath
-		buildEnv["GOPATH"] = gopath
+		buildCWD = root
 
 		buildArgs = append(buildArgs, "-mod=vendor")
 		testArgs = append(testArgs, "-mod=vendor")
 	} else {
+		if tempdir == "" {
+			tempdir, err = ioutil.TempDir("", fmt.Sprintf("%v-build-", config.Name))
+			if err != nil {
+				die("TempDir(): %v\n", err)
+			}
+		}
+
 		verbosePrintf("Go < 1.11 or 'go.mod' not found, create GOPATH at %v\n", tempdir)
 		targetdir := filepath.Join(tempdir, "src", filepath.FromSlash(config.Namespace))
 		if err = copy(targetdir, root); err != nil {
@@ -620,7 +609,6 @@ func main() {
 
 		goEnv["GOPATH"] = tempdir
 		buildEnv["GOPATH"] = tempdir
-		buildTarget = filepath.FromSlash(mainPackage)
 	}
 
 	verbosePrintf("environment:\n  go: %v\n  build: %v\n", goEnv, buildEnv)
