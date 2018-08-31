@@ -292,7 +292,7 @@ func build(cwd string, env map[string]string, args ...string) error {
 
 // test runs "go test args..." with GOPATH set to gopath.
 func test(cwd string, env map[string]string, args ...string) error {
-	args = append([]string{"test"}, args...)
+	args = append([]string{"test", "-count", "1"}, args...)
 	cmd := exec.Command("go", args...)
 	cmd.Env = append(cleanEnv(), "GOPROXY=off")
 	for k, v := range env {
