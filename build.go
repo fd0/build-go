@@ -168,30 +168,34 @@ func copyFile(dst, src string) error {
 
 	fdst, err := os.Create(dst)
 	if err != nil {
+		_ = fsrc.Close()
 		return err
 	}
 
-	if _, err = io.Copy(fdst, fsrc); err != nil {
+	_, err = io.Copy(fdst, fsrc)
+	if err != nil {
+		_ = fsrc.Close()
+		_ = fdst.Close()
 		return err
 	}
 
-	if err == nil {
-		err = fsrc.Close()
+	err = fdst.Close()
+	if err != nil {
+		_ = fsrc.Close()
+		return err
 	}
 
-	if err == nil {
-		err = fdst.Close()
+	err = fsrc.Close()
+	if err != nil {
+		return err
 	}
 
-	if err == nil {
-		err = os.Chmod(dst, fi.Mode())
+	err = os.Chmod(dst, fi.Mode())
+	if err != nil {
+		return err
 	}
 
-	if err == nil {
-		err = os.Chtimes(dst, fi.ModTime(), fi.ModTime())
-	}
-
-	return err
+	return os.Chtimes(dst, fi.ModTime(), fi.ModTime())
 }
 
 // die prints the message with fmt.Fprintf() to stderr and exits with an error
